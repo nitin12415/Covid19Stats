@@ -53,7 +53,7 @@ export class AppComponent {
     "PY": "Puducherry",
     "LA": "Ladakh"
   }
-  @ViewChild('chart') chart:any;
+  // @ViewChild('chart') chart:any;
   public ctx: any
   public chartData:any[]=[]
   type: any= 'scatter'
@@ -86,19 +86,20 @@ export class AppComponent {
         }        
         this.chartData.push(obj)
       }
-      this.buildChart();
+      console.log(this.chartData);
+      this.buildChart(this.chartData);
     });
   }
 
-  buildChart() { 
-    console.log(this.chartData);
-       
-    this.ctx = new Chart(this.chart.nativeElement, {
+  buildChart(chartData:any) { 
+    let ctx = document.getElementById('myChart') as HTMLCanvasElement;
+
+    this.ctx = new Chart(ctx, {
       type: this.type,
       data: {
         datasets: [{
           label: 'Scatter Dataset',
-          data: this.chartData,
+          data: chartData,
           backgroundColor: 'rgb(255, 99, 132)'
         }],
       },
@@ -123,10 +124,23 @@ export class AppComponent {
    });
   }
 
-  selectState(stateCode:any){    
-    this.selectedState= this.states[stateCode]
-    console.log(this.selectedState);
-    
+  async selectState(stateCode:any){    
+    this.selectedState= this.states[stateCode]    
+    this.chartData=[];
+    const arrayOfObj = Object.entries(this.selectedState?.districts).map((e) => ( { [e[0]]: e[1] } ));
+      for(let i=0 ; i< arrayOfObj.length; i++){
+        
+        let points: any= (Object.values(arrayOfObj[i]));
+        
+        let obj= {
+          x: points[0].total.vaccinated1,
+          y: points[0].total.vaccinated2,
+          district: Object.keys(arrayOfObj[i])[0]
+        }        
+        this.chartData.push(obj)
+      }
+      await this.ctx.destroy();
+      await this.buildChart(this.chartData);
   }
 
   showData(data: any){
